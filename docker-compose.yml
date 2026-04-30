@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: shortener
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-shortener}
+      POSTGRES_DB: shortener
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shortener"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - "3010:3010"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgres://shortener:shortener@postgres:5432/shortener}
+      BASE_URL: ${BASE_URL:-http://localhost:3010}
+      NODE_ENV: ${NODE_ENV:-development}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
