@@ -3,15 +3,21 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const express = require('express');
+const cors = require('cors');
 const migrate = require('./migrate');
 const app = express();
 
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:5173'];
+
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
-// Mount stats route before /:code so it isn't swallowed by the wildcard
+// Single mount — Express correctly routes /stats/:code (2 segments)
+// before /:code (1 segment), so no separate mount needed.
 const router = require('./routes');
-app.use('/stats', router);  // /stats/:code
-app.use('/', router);       // /shorten and /:code
+app.use('/', router);
 
 const PORT = process.env.PORT || 3010;
 
@@ -20,6 +26,6 @@ migrate()
     app.listen(PORT, () => console.log(`url-shortener listening on port ${PORT}`));
   })
   .catch(err => {
-    console.error('Migration failed:', err.message);
+    console.error('Migration failed:', err?.stack ?? err);
     process.exit(1);
   });
