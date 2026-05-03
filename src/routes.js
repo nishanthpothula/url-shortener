@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('./db');
+const redis = require('./cache');
 const { generateCode } = require('./shortcode');
 
 // POST /shorten — create a short URL
@@ -41,15 +42,18 @@ router.post('/shorten', async (req, res) => {
   });
 });
 
-// GET /:code — redirect to original URL, increment hit count
+// GET /:code — redirect to original URL
 router.get('/:code', async (req, res) => {
   const { code } = req.params;
 
   try {
-    // Increment hit_count and return the long_url in one round-trip
-    // Deliberately naive: write transaction on every redirect
+    const cached = await redis.get(`short:${code}`);
+    if (cached) {
+      return res.redirect(302, cached);
+    }
+
     const result = await pool.query(
-      'UPDATE urls SET hit_count = hit_count + 1 WHERE short_code = $1 RETURNING long_url',
+      'SELECT long_url FROM urls WHERE short_code = $1',
       [code]
     );
 
@@ -57,7 +61,9 @@ router.get('/:code', async (req, res) => {
       return res.status(404).json({ error: 'Short code not found' });
     }
 
-    res.redirect(302, result.rows[0].long_url);
+    const longUrl = result.rows[0].long_url;
+    await redis.setex(`short:${code}`, 86400, longUrl);
+    res.redirect(302, longUrl);
   } catch (err) {
     console.error('Redirect error:', err.message);
     res.status(500).json({ error: 'Database error' });

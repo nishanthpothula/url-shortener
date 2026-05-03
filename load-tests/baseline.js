@@ -76,6 +76,7 @@ export function readScenario() {
 // Scenario 3 (DEFAULT): 95% reads / 5% writes — realistic mix
 // ---------------------------------------------------------------------------
 export const options = {
+  setupTimeout: '3m',
   stages: [
     { duration: '30s', target: 50 },
     { duration: '1m', target: 200 },
