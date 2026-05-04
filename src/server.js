@@ -2,30 +2,45 @@ if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 }
 
-const express = require('express');
-const cors = require('cors');
-const migrate = require('./migrate');
-const app = express();
+const cluster = require('cluster');
+const os = require('os');
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:5173'];
+if (cluster.isPrimary) {
+  const numWorkers = os.cpus().length;
+  console.log(`Primary ${process.pid} starting ${numWorkers} workers`);
 
-app.use(cors({ origin: allowedOrigins }));
-app.use(express.json());
+  for (let i = 0; i < numWorkers; i++) {
+    cluster.fork();
+  }
 
-// Single mount — Express correctly routes /stats/:code (2 segments)
-// before /:code (1 segment), so no separate mount needed.
-const router = require('./routes');
-app.use('/', router);
-
-const PORT = process.env.PORT || 3010;
-
-migrate()
-  .then(() => {
-    app.listen(PORT, () => console.log(`url-shortener listening on port ${PORT}`));
-  })
-  .catch(err => {
-    console.error('Migration failed:', err?.stack ?? err);
-    process.exit(1);
+  cluster.on('exit', (worker, code, signal) => {
+    console.log(`Worker ${worker.process.pid} died (${signal || code}), restarting`);
+    cluster.fork();
   });
+} else {
+  const express = require('express');
+  const cors = require('cors');
+  const migrate = require('./migrate');
+  const app = express();
+
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : ['http://localhost:5173'];
+
+  app.use(cors({ origin: allowedOrigins }));
+  app.use(express.json());
+
+  const router = require('./routes');
+  app.use('/', router);
+
+  const PORT = process.env.PORT || 3010;
+
+  migrate()
+    .then(() => {
+      app.listen(PORT, () => console.log(`Worker ${process.pid} listening on port ${PORT}`));
+    })
+    .catch(err => {
+      console.error('Migration failed:', err?.stack ?? err);
+      process.exit(1);
+    });
+}
