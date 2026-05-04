@@ -14,6 +14,10 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 150m
 
   redis:
     image: redis:7-alpine
@@ -25,6 +29,10 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 80m
 
   app:
     build: .
@@ -41,6 +49,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 150m
 
 volumes:
   pgdata:
