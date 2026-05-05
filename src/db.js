@@ -1,8 +1,8 @@
 const { Pool } = require('pg');
 
-// Single pool, default size of 10 — deliberately naive
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  max: 25,
 });
 
 pool.on('error', (err) => {
