@@ -37,10 +37,15 @@ services:
   pgbouncer:
     image: edoburu/pgbouncer:latest
     environment:
-      DATABASE_URL: postgres://shortener:${DB_PASSWORD:-shortener}@postgres:5432/shortener
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: shortener
+      DB_PASSWORD: ${DB_PASSWORD:-shortener}
+      DB_NAME: shortener
       POOL_MODE: transaction
       MAX_CLIENT_CONN: 1000
       DEFAULT_POOL_SIZE: 25
+      AUTH_TYPE: md5
     ports:
       - "6432:5432"
     depends_on:
