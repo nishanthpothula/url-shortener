@@ -29,7 +29,7 @@ services:
           memory: 160m
 
   pgbouncer:
-    image: bitnami/pgbouncer:latest
+    image: pgbouncer/pgbouncer:latest
     environment:
       POSTGRESQL_HOST: postgres
       POSTGRESQL_PORT: 5432
