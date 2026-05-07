@@ -29,17 +29,17 @@ services:
           memory: 160m
 
   pgbouncer:
-    image: edoburu/pgbouncer:latest
+    image: bitnami/pgbouncer:latest
     environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USER: shortener
-      DB_PASSWORD: ${DB_PASSWORD:-shortener}
-      DB_NAME: shortener
-      POOL_MODE: transaction
-      MAX_CLIENT_CONN: 1000
-      DEFAULT_POOL_SIZE: 25
-      AUTH_TYPE: md5
+      POSTGRESQL_HOST: postgres
+      POSTGRESQL_PORT: 5432
+      POSTGRESQL_USERNAME: shortener
+      POSTGRESQL_PASSWORD: ${DB_PASSWORD:-shortener}
+      POSTGRESQL_DATABASE: shortener
+      PGBOUNCER_POOL_MODE: transaction
+      PGBOUNCER_MAX_CLIENT_CONN: 1000
+      PGBOUNCER_DEFAULT_POOL_SIZE: 25
+      PGBOUNCER_AUTH_TYPE: md5
     ports:
       - "6432:5432"
     depends_on:
