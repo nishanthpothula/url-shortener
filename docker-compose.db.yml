@@ -31,15 +31,15 @@ services:
   pgbouncer:
     image: pgbouncer/pgbouncer:latest
     environment:
-      POSTGRESQL_HOST: postgres
-      POSTGRESQL_PORT: 5432
-      POSTGRESQL_USERNAME: shortener
-      POSTGRESQL_PASSWORD: ${DB_PASSWORD:-shortener}
-      POSTGRESQL_DATABASE: shortener
-      PGBOUNCER_POOL_MODE: transaction
-      PGBOUNCER_MAX_CLIENT_CONN: 1000
-      PGBOUNCER_DEFAULT_POOL_SIZE: 25
-      PGBOUNCER_AUTH_TYPE: md5
+      DATABASES_HOST: postgres
+      DATABASES_PORT: 5432
+      DATABASES_USER: shortener
+      DATABASES_PASSWORD: ${DB_PASSWORD:-shortener}
+      DATABASES_DBNAME: shortener
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 1000
+      DEFAULT_POOL_SIZE: 25
+      AUTH_TYPE: md5
     ports:
       - "6432:5432"
     depends_on:
