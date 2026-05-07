@@ -2,6 +2,7 @@ services:
   postgres:
     image: postgres:16
     network_mode: host
+    command: postgres -c max_connections=200 -c shared_buffers=256MB
     environment:
       POSTGRES_USER: shortener
       POSTGRES_PASSWORD: ${DB_PASSWORD:-shortener}
@@ -31,7 +32,7 @@ services:
       DATABASES_DBNAME: shortener
       POOL_MODE: transaction
       MAX_CLIENT_CONN: 1000
-      DEFAULT_POOL_SIZE: 25
+      DEFAULT_POOL_SIZE: 100
       AUTH_TYPE: md5
       LISTEN_PORT: 6432
     depends_on:

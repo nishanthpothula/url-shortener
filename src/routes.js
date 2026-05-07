@@ -47,7 +47,13 @@ router.get('/:code', async (req, res) => {
   const { code } = req.params;
 
   try {
-    const cached = await redis.get(`short:${code}`);
+    let cached = null;
+    try {
+      cached = await redis.get(`short:${code}`);
+    } catch (redisErr) {
+      // Redis unavailable — fall through to Postgres
+    }
+
     if (cached) {
       return res.redirect(302, cached);
     }
@@ -62,7 +68,11 @@ router.get('/:code', async (req, res) => {
     }
 
     const longUrl = result.rows[0].long_url;
-    await redis.setex(`short:${code}`, 86400, longUrl);
+    try {
+      await redis.setex(`short:${code}`, 86400, longUrl);
+    } catch (redisErr) {
+      // Redis unavailable — continue without caching
+    }
     res.redirect(302, longUrl);
   } catch (err) {
     console.error('Redirect error:', err.message);
