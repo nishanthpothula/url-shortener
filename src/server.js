@@ -14,6 +14,18 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
+let inflight = 0;
+const MAX_INFLIGHT = parseInt(process.env.MAX_INFLIGHT || '200');
+app.use((req, res, next) => {
+  if (inflight >= MAX_INFLIGHT) {
+    return res.status(503).json({ error: 'Server busy' });
+  }
+  inflight++;
+  res.on('finish', () => inflight--);
+  res.on('close', () => inflight--);
+  next();
+});
+
 const router = require('./routes');
 app.use('/', router);
 
