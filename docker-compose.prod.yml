@@ -1,16 +1,12 @@
 services:
   app:
     build: .
-    ports:
-      - "3010:3010"
+    network_mode: host
     environment:
       DATABASE_URL: postgres://shortener:${DB_PASSWORD:-shortener}@10.116.0.2:6432/shortener
       REDIS_URL: redis://10.116.0.2:6379
       BASE_URL: ${BASE_URL:-http://localhost:3010}
       NODE_ENV: production
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:4100}
+      PORT: 3010
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 150m
